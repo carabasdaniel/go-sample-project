@@ -1,0 +1,4 @@
+---
+logging:
+  prod: false
+  log_level: debug

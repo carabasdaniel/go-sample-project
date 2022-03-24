@@ -1,0 +1,92 @@
+before:
+  hooks:
+
+builds:
+  - id: go-sample-project
+    main: ./cmd/go-sample-project
+    binary: go-sample-project
+    tags: []
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s
+      - -w
+      - -X github.com/aserto-dev/go-sample-project/pkg/version.ver={{.Version}}
+      - -X github.com/aserto-dev/go-sample-project/pkg/version.commit={{.ShortCommit}}
+      - -X github.com/aserto-dev/go-sample-project/pkg/version.date={{.Date}}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+archives:
+  - format: zip
+    builds:
+    - go-sample-project
+    replacements:
+      darwin: darwin
+      linux: linux
+      windows: windows
+      amd64: x86_64
+    files:
+      - LICENSE
+      - README.md
+    name_template: "go-sample-project{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  name_template: "{{ .Tag }}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+release:
+  github:
+    owner: aserto-dev
+    name: go-sample-project
+
+  draft: false
+  prerelease: false
+  name_template: "go-sample-project {{.Tag}}"
+
+brews:
+  - name: go-sample-project
+
+    tap:
+      owner: aserto-dev
+      name: go-sample-project
+      token: "{{ .Env.ASERTO_TAP }}"
+
+    url_template: "https://github.com/aserto-dev/go-sample-project/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    download_strategy: CustomGitHubPrivateRepositoryReleaseDownloadStrategy
+    custom_require: "lib/custom_download_strategy"
+
+    commit_author:
+      name: Aserto Bot
+      email: github-bot@aserto.com
+
+    homepage: "https://aserto.com/"
+
+    description: "Aserto go-sample-project."
+
+    license: "Proprietary"
+
+    skip_upload: false
+
+    test: |
+      system "#{bin}/go-sample-project version"
+    install: |
+      bin.install "go-sample-project"
